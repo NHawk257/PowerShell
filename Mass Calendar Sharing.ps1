@@ -1,6 +1,3 @@
-﻿#This script will grab all mailbox in the tenant and give the user or group permission to them.
-
-
 Connect-ExchangeOnline
 $user = Read-Host -Prompt "Please provide a user or group to grant permission to"
 
