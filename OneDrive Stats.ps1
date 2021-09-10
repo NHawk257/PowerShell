@@ -1,4 +1,4 @@
-﻿Write-Host "Connecting to MSOL for user list..." -foregroundColor Green
+Write-Host "Connecting to MSOL for user list..." -foregroundColor Green
 Connect-MsolService
 
 $users = Get-MsolUser -All | where {$_.isLicensed -eq $true}
