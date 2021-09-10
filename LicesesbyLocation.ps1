@@ -1,8 +1,7 @@
-﻿#Connect to AAD and MSOL. MSOL is needed to get usage location. AAD is used for everything else.
 Connect-MsolService
 Connect-AzureAD
 
-#Two letter country code for expected countries here:
+#Two letter country code for expected countries here. Google country codes if you don't know them. Included are Mexico, Canada, and Chile.
 $Countries = "MX", "CA", "CL"
 
 #Get all License Plans available:
@@ -23,6 +22,7 @@ Foreach ($country in $Countries)
             $licensePlanList | ForEach { 
                 If ( $sku -eq $_.ObjectId.substring($_.ObjectId.length - 36, 36) ) {
                  $License= $_.SkuPartNumber 
+                 #This is dirty but it works. If there's other licenses in use, add them here or do a find/replace in Excel.
                  $License = $License -replace ("VISIOCLIENT","Visio Online Plan 2")
                  $License = $License -replace ("STREAM","Microsoft Stream Trial")
                  $License = $License -replace ("WIN10_VDA_E5","Windows 10 Enterprise E5")
