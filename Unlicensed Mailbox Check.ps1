@@ -1,4 +1,4 @@
-﻿Connect-ExchangeOnline
+Connect-ExchangeOnline
 Connect-MsolService
 
 $csvfilename = ".\No_Mailbox.csv"
