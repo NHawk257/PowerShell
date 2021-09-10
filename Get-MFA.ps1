@@ -1,8 +1,8 @@
-﻿Connect-MsolService
+Connect-MsolService
 Connect-ExchangeOnline
 
 
-$csvfilename = ".\FBFA_MFA.csv"
+$csvfilename = ".\MFA_Report.csv"
 New-Item $csvfilename -type file -force
 Add-Content $csvfilename "User,Email,MFA_Status,MFA_Method,Last_Logon"
 
