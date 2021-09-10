@@ -1,4 +1,4 @@
-﻿Write-Host "Connecting to MSOL for user list..." -foregroundColor Green
+Write-Host "Connecting to MSOL for user list..." -foregroundColor Green
 Connect-MsolService
 
 $F3users = get-msoluser -all  | Where-Object {($_.licenses).AccountSkuId -match "DESKLESSPACK"} | foreach {$_.UserPrincipalName}
