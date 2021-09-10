@@ -1,4 +1,4 @@
-﻿Connect-MsolService
+Connect-MsolService
 Connect-AzureAD
 
 Get-AzureADSubscribedSku | Select SkuPartNumber
