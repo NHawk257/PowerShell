@@ -1,4 +1,4 @@
-﻿Connect-ExchangeOnline
+Connect-ExchangeOnline
 
 $mailboxes = Get-Mailbox
 $user =  Read-Host -Prompt "Please provide a user to check permissions for"
