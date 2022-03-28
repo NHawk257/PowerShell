@@ -1,6 +1,6 @@
 Connect-ExchangeOnline
 
-$mailboxes = Get-Mailbox
+$mailboxes = Get-Mailbox -ResultSize Unlimited
 $user =  Read-Host -Prompt "Please provide a user to check permissions for"
 
 foreach($mailbox in $mailboxes)
