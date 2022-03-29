@@ -44,7 +44,7 @@ Foreach ($SharedMailbox in $SharedMailboxes) {
 
     }
     Else {
-        $LastAccessed = $LastAccessed
+        $LastAccessed = $AccessedDate
 
     }
 
