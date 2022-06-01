@@ -1,7 +1,10 @@
-Connect-AzureAD
+<# The idea here is to get a list of group members from one group and add them all to another group
+ In this case, the groups are rather large and could not be done by hand
 
-# Move all the people in the group called: ES_Office 365 E5 License 
-# To the group called: ES_Microsoft 365 E5 License
+ #>
+
+Connect-AzureAD
+# I know this is going away soon but this script was needed quickly. Might need to re-write for Graph AAD
 
 $OldGroup = Get-azureAdGroup -SearchString "ES_Office 365 E5 License" | Select-Object -ExpandProperty ObjectId
 $OldMembers = Get-AzureADGroupMember -ObjectId $OldGroup -All $True | Select-Object -ExpandProperty ObjectId
