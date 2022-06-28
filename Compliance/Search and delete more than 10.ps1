@@ -1,9 +1,9 @@
 ﻿# Some information for the batch
-$SearchName = "INC0597059_2-25"
+$SearchName = "INC000005242548"
 # Some information to identify the messages we want to purge
-$Sender = "dellcanada@em.business.dell.ca"
-$Subject = "TECH REFRESH for business | Your chance to upgrade and save"
-$Location = "operator@bclc.com"
+$Sender = "MCampol@oib.ca"
+$Subject = "Osoyoos Indian Band, June 2022 RFQ!!!"
+$Location = "All"
 # Date range for the search - make this as precise as possible
 #$StartDate = "10-Mar-2020"
 #$EndDate = "13-Mar-2020"
@@ -11,7 +11,7 @@ $Location = "operator@bclc.com"
 #$End = (Get-Date $EndDate).ToString('yyyy-MM-dd')
 #$ContentQuery = '(c:c)(received=' + $Start + '..' + $End +')(senderauthor=' + $Sender + ')(subjecttitle="' + $Subject + '")'
 
-$ContentQuery = '(senderauthor=' + $Sender + ')(subjecttitle="' + $Subject + '")'
+$ContentQuery = '(from=' + $Sender + ')(subject="' + $Subject + '")'
 
 If (Get-ComplianceSearch -Identity $SearchName) {
    Write-Host "Cleaning up old search"
@@ -26,10 +26,14 @@ Write-Host "Starting Search..."
 Start-ComplianceSearch -Identity $SearchName | Out-Null
 $Seconds = 0
 While ((Get-ComplianceSearch -Identity $SearchName).Status -ne "Completed") {
-  $Seconds++
-  Write-Host "Still searching... (" $Seconds ")"
-   Sleep -Seconds 1 }
+  
+   Write-Host "Still searching... (" $Seconds ")"
+   Sleep -Seconds 30 
+   $Seconds = $Seconds+30
+}
+
 $ItemsFound = (Get-ComplianceSearch -Identity $SearchName).Items
+Write-Host "Items Found: "$ItemsFound""
 
 If ($ItemsFound -gt 0) {
    $Stats = Get-ComplianceSearch -Identity $SearchName | Select -Expand SearchStatistics | Convertfrom-JSON
