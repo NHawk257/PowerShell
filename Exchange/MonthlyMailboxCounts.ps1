@@ -2,8 +2,8 @@
    Plus a CSV file to backup the data. Primarily for billing use.
    
    I keep forgetting what exactly I used for this and have to 
-   re-write it every month. It's just a 1 liner but This way I 
-   don't have to remember it.
+   re-write it every month. It was just a 1 liner but This way 
+   I don't have to remember it.
 #>
 
 Connect-ExchangeOnline
