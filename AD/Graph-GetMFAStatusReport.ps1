@@ -37,7 +37,7 @@ Function Connect_MgGraph
 }
 Connect_MgGraph
 
-#Import/connect to MSOL. The MS Graph Module doesn't give Admin roles currently due to a bug
+#Import/connect to MSOL. The MS Graph Module doesn't give Admin roles currently due to a bug: https://github.com/microsoftgraph/msgraph-metadata/issues/167
 Import-Module MSOnline -UseWindowsPowerShell #For VSC/PS7 purposes, this isn't needed for regular PS
 Connect-MsolService
 
