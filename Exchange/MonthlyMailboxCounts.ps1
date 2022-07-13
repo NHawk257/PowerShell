@@ -12,3 +12,15 @@ $Name = Get-AcceptedDomain | Where-object {$_.Default -eq "True"} | Select-Objec
 $Name = $Name.replace(".onmicrosoft.com","")
 
 Get-mailbox -ResultSize Unlimited | Select-Object DisplayName,PrimarySmtpAddress,RecipientTypeDetails | Export-Csv .\"$Name"_Mailbox_Count_$((Get-Date -format dd-MM-yy).ToString()).csv 
+
+<# - Display a count of mailboxes on the screen rather than needing to Pivot
+   $UserMailboxes    = (Get-Mailbox -ResultSize Unlimited -MailboxRecipientType UserMailbox).count
+   $SharedMailboxes  = (Get-Mailbox -ResultSize Unlimited -MailboxRecipientType SharedMailbox).count
+   $RoomMailboxes    = (Get-Mailbox -ResultSize Unlimited -MailboxRecipientType RoomMailbox).count
+   $EquipMailboxes   = (Get-Mailbox -ResultSize Unlimited -MailboxRecipientType EquipmentMailbox).count
+
+   Write-Host "There are $UserMailboxes User Mailboxes"
+   Write-Host "There are $SharedMailboxes Shared Mailboxes"
+   Write-Host "There are $RoomMailboxes Room Mailboxes"
+   Write-Host "There are $EquipmentMailboxes Equipment Mailboxes"
+#>
