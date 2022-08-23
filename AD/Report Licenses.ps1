@@ -1,37 +1,22 @@
-Connect-MsolService
+#Connect to AAD module
 Connect-AzureAD
 
-Get-AzureADSubscribedSku | Select SkuPartNumber
-
-$allSKUs=Get-AzureADSubscribedSku
-
-$licArray = @()
-for($i = 0; $i -lt $allSKUs.Count; $i++)
-{
-$licArray += "Service Plan: " + $allSKUs[$i].SkuPartNumber
-$licArray +=  Get-AzureADSubscribedSku -ObjectID $allSKUs[$i].ObjectID | Select -ExpandProperty ServicePlans
-$licArray +=  ""
-}
-$licArray
-
-$csvfilename = ".\LicenseReport.csv"
-New-Item $csvfilename -type file -force
-Add-Content $csvfilename "User,License"
-
-$userUPNs = Get-MsolUser -all | foreach {$_.UserPrincipalName} 
-
-foreach($userUPN in $userUPNs)
-{
-    $licensePlanList = Get-AzureADSubscribedSku
-    $userList = Get-AzureADUser -ObjectID $userUPN | Select -ExpandProperty AssignedLicenses | Select SkuID 
-    $userList | ForEach { $sku=$_.SkuId ; 
-        $licensePlanList | ForEach { 
-            If ( $sku -eq $_.ObjectId.substring($_.ObjectId.length - 36, 36) ) 
-                { 
-                $License = $_.SkuPartNumber 
-                Add-Content $csvfilename "$UserUPN,$License"
-
-                } 
-            } 
-          }
-}
+$Report = [System.Collections.Generic.List[Object]]::new() # Create output file 
+$Skus = Get-AzureADSubscribedSku | Select-Object Sku*, ConsumedUnits 
+ForEach ($Sku in $Skus) {
+   Write-Host "Processing license holders for" $Sku.SkuPartNumber
+   $SkuUsers = Get-AzureADUser -All $True | ? {$_.AssignedLicenses -Match $Sku.SkuId}
+   ForEach ($User in $SkuUsers) {
+      $ReportLine  = [PSCustomObject] @{
+          User       = $User.DisplayName 
+          UPN        = $User.UserPrincipalName
+          Department = $User.Department
+          Country    = $User.Country
+          SKU        = $Sku.SkuId
+          SKUName    = $Sku.SkuPartNumber} 
+         $Report.Add($ReportLine) }}
+<# Use this section to just view the report
+    $Report | Sort User | Out-GridView
+#>
+#Export to a CSV file to manipulate. A Pivot Table works great for summarizing
+$Report | Export-Csv .\LicenseReport.csv -Force
