@@ -18,5 +18,11 @@ ForEach ($Sku in $Skus) {
 <# Use this section to just view the report
     $Report | Sort User | Out-GridView
 #>
+
 #Export to a CSV file to manipulate. A Pivot Table works great for summarizing
 $Report | Export-Csv .\LicenseReport.csv -Force
+
+<#
+    Details to translate SKU IDs to common wording from MS:
+    https://docs.microsoft.com/en-us/azure/active-directory/enterprise-users/licensing-service-plan-reference
+#>
