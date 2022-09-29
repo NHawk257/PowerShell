@@ -1,4 +1,4 @@
-﻿Connect-ExchangeOnline -DelegatedOrganization Procongroup.com
+﻿Connect-ExchangeOnline
 
 $WrongReceive = 0
 $WrongSend = 0
