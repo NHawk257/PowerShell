@@ -6,7 +6,7 @@ Some changes made to help math work better and checks to stop empty mailboxes fr
 Connect-ExchangeOnline
 
 #Set quota percent limit (80% by default) 
-$quotalimit = 80
+$quotalimit = 90
 
 # Get all mailboxes
 $Mailboxes = @(Get-Mailbox -ResultSize Unlimited | select-object DisplayName, Identity, PrimarySmtpAddress, ProhibitSendQuota, ProhibitSendReceiveQuota)
