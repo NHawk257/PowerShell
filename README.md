@@ -1,10 +1,13 @@
-# PowerShell
-A location for all my custom PowerShell scripts.
-These sript have been written by myself with help from various sources online.
+# PowerShell Home
+A location for my custom PowerShell scripts to live and have source-control.
+This repository is a combination of scripts written by me, scripts modified by me, and 1st party Microsoft scripts.
+Any scripts that have been edited from elsewhere will have proper credits in the first comments.
 
-Feel free to use any of these scripts as needed. Make sure you know what the script
-is doing before you run it. Some of these make changes while others are just reports.
+Feel free to use any of these scripts as needed, free of use. Please give credit where due.
+Make sure you know what the script is doing before you run it. Some are reports, others make mass changes.
+I am in no way responsible for any of the actions performed by your usage of these scripts.
 
-Fair warning, Microsoft is always changing things in the back-end. Some of these scripts may or may not work depending on when they were last updated.
+Be aware, Microsoft is always changing things in the back-end and retiring modules/cmdlets.
+Some of these scripts may not work depending on when they were last updated. I do not test these regularly.
 
 Feel free to check out my blog for some examples and stories: https://evandottech.wordpress.com

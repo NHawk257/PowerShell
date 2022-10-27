@@ -1,1 +1,1 @@
-# SharePoint and OneDrive related PowerShell scripts
+# SharePoint and OneDrive PowerShell scripts

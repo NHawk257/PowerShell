@@ -1,1 +1,1 @@
-# A place for Teams PowerShell scripts
+# Teams PowerShell scripts
