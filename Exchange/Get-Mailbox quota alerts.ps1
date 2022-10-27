@@ -9,7 +9,7 @@ Connect-ExchangeOnline
 $quotalimit = 80
 
 # Get all mailboxes
-$Mailboxes = @(Get-Mailbox -ResultSize Unlimited | select-object DisplayName, Identity, ProhibitSendQuota, ProhibitSendReceiveQuota)
+$Mailboxes = @(Get-Mailbox -ResultSize Unlimited | select-object DisplayName, Identity, PrimarySmtpAddress, ProhibitSendQuota, ProhibitSendReceiveQuota)
 # Clear the report object variable
 $Report =@()
 
@@ -17,7 +17,7 @@ $Report =@()
 foreach ($Mailbox in $Mailboxes)
 {
     # Get statistics for all mailboxes
-    $Mailboxstats = Get-MailboxStatistics -identity $Mailbox.Identity | select-object Displayname,Identity,Database,TotalItemSize,TotalDeletedItemSize,DatabaseIssueWarningQuota,DatabaseProhibitSendQuota
+    $Mailboxstats = Get-MailboxStatistics -identity $Mailbox.PrimarySmtpAddress | select-object Displayname,Identity,Database,TotalItemSize,TotalDeletedItemSize
 
     #Convert size values to INT64 and remove crap (looks like this initially "1.123 GB (1,205,513,370 bytes)" and comes out as a numeric 1205513370)
     #If statements in use to turf errors related to null values (empty mailboxes)
@@ -47,5 +47,9 @@ foreach ($Mailbox in $Mailboxes)
         $report += $ReportObject
     }
 }
-# Output the report, sorted with the highest quota percentage at the top
+# Output the report on screen, sorted with the highest quota percentage at the top
 $Report | Sort-Object QuotaPercent -Descending
+
+<#For ingestable data (CSV)
+    $Report | Export-CSV .\Mailbox_Quota_Report.csv
+#>
