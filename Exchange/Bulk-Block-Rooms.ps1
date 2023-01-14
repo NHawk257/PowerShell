@@ -13,7 +13,7 @@ Foreach($Room in $Rooms) {
 
     If ($Synced -ne "True") {
         #If we can, hide the room from the GAL in EXO
-        Set-Mailbox -Identity $Room -HiddenFromAddressListsEnabled $true
+        Set-Mailbox -Identity $Room.name -HiddenFromAddressListsEnabled $true
         Write-host "You can hide $Room in EXO"
     }
     Else{
