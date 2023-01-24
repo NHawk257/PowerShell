@@ -7,10 +7,13 @@ $Server = Read-Host -Prompt 'Input Exchange Server PS URI'
 $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $Server -Authentication Kerberos -Credential $UserCredential
 Import-PSSession $Session -DisableNameChecking
 
+#Set AD Scope to entire forest
+Set-ADServerSettings -ViewEntireForest $true
+
 #Create the CSV file with headers
 $csvfilename = ".\Remote_MailboxReport_$((Get-Date -format dd-MM-yy).ToString()).csv"
 New-Item $csvfilename -type file -force
-Add-Content $csvfilename "Display Name","Alias","Primary SMTP","Exchange Online GUID"
+Add-Content $csvfilename "Display Name,Alias,Primary SMTP,Exchange Online GUID"
 
 #Get list of DirSynced Mailboxes, Alias was too vauge in some cases, PrimarySMTP cannot be vauge
 $CloudMailboxes = get-ExchOnlineMailbox -resultsize Unlimited | ? {$_.IsDirSynced -eq 'True'} | Select-Object -ExpandProperty PrimarySmtpAddress
@@ -36,6 +39,6 @@ Foreach ($CloudMailbox in $CloudMailboxes){
         $PrimarySMTP = $Mailbox.PrimarySMTPAddress
         $GUID        = $Mailbox.ExchangeGuid
         
-        Add-Content $csvfilename $DisplayName,$Alias,$PrimarySMTP,$GUID
+        Add-Content $csvfilename "$DisplayName,$Alias,$PrimarySMTP,$GUID"
     }
 }
