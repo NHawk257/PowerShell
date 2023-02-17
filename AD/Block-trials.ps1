@@ -1,4 +1,5 @@
-<#Microsoft's setting found in the M365 Admin center does not block users from starting trials in "Power Platform" based apps including Project, Visio, and Dynamics.
+<#
+Microsoft's setting found in the M365 Admin center does not block users from starting trials in "Power Platform" based apps including Project, Visio, and Dynamics.
 This script will run through all these products (based on the ID list provided at the moment by MS) and disable the ability for users to initiate trials.
 #>
 
