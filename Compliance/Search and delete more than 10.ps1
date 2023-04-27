@@ -1,5 +1,5 @@
 ﻿# Some information for the batch
-$SearchName = "INC000005242548"
+$SearchName = "Monthly E04 Branch Meeting"
 # Some information to identify the messages we want to purge
 $Sender = "MCampol@oib.ca"
 $Subject = "Osoyoos Indian Band, June 2022 RFQ!!!"
@@ -49,7 +49,7 @@ If ($ItemsFound -gt 0) {
    While ($ItemsProcessed -lt $ItemsFound) {
        $Iterations++
        Write-Host "Deleting items... (" $Iterations ")"
-       New-ComplianceSearchAction -SearchName $SearchName -Purge -PurgeType HardDelete -Confirm:$False | Out-Null
+       New-ComplianceSearchAction -SearchName $SearchName -Purge -PurgeType SoftDelete -Confirm:$False | Out-Null
        While ((Get-ComplianceSearchAction -Identity ($SearchName + '_Purge')).Status -ne "Completed") 
        { # Let the search action complete
            Sleep -Seconds 2 }
