@@ -1,4 +1,9 @@
-﻿Connect-ExchangeOnline
+﻿<#
+    As is, this script assumes every mailbox in the tenant is licensed for a 100GB mailbox (P2/E5)
+    This needs to be modified to check the license type first and then compare the mailbox size.
+#>
+
+Connect-ExchangeOnline
 
 $WrongReceive = 0
 $WrongSend = 0
