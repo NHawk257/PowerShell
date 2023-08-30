@@ -32,6 +32,7 @@ While ((Get-ComplianceSearch -Identity $SearchName).Status -ne "Completed") {
    $Seconds = $Seconds+30
 }
 
+#!! Start here if you already created the search via Purview Admin
 $ItemsFound = (Get-ComplianceSearch -Identity $SearchName).Items
 Write-Host "Items Found: "$ItemsFound""
 
