@@ -1,24 +1,32 @@
 Connect-ExchangeOnline
-Connect-MsolService
+#Connect-MsolService -- Switching to Graph as MSOL is broken AF regularly...
+Connect-Graph -Scopes User.ReadWrite.All, Organization.Read.All
 
-#Get list of MSOL SKUs:
-#Get-MsolAccountSku
+#Get list of MSOL SKUs: Get-MsolAccountSku
+#Old MSOL User Search
+#$Users = Get-MsolUser -all | Where-Object {(($_.licenses).AccountSkuId -match "SPE_F1") -and ($_.SignInName -like "*@4refuel.com")} | Select-Object userPrincipalName,licenses
 
 #Create the CSV file with headers
 $csvfilename = ".\F3UsageReport_$((Get-Date -format dd-MM-yy).ToString()).csv"
 New-Item $csvfilename -type file -force
-Add-Content $csvfilename "Display Name,UPN,Total Size,Licenses"
+Add-Content $csvfilename "Display Name,UPN,Disabled,License,Total Size"
 
-$Users = Get-MsolUser -all | Where-Object {(($_.licenses).AccountSkuId -match "SPE_F1") -and ($_.SignInName -like "*@4refuel.com")} | Select-Object userPrincipalName,licenses
+#Filtering for domain specific mailboxes
+$Mailboxes = Get-Mailbox -ResultSize Unlimited -RecipientTypeDetails UserMailbox | Where-Object {$_.PrimarySMTPAddress -like "*@4refuel.com"}
 
-Foreach ($User in $Users){
+Foreach ($Mailbox in $Mailboxes){
+    #Specifically looking for F3 users. Adjust to different SKU if needed
+    $F3Check = Get-MgUserLicenseDetail -UserId $Mailbox.PrimarySMTPAddress -ErrorAction SilentlyContinue | Where-Object {$_.SkuPartNumber -match "SPE_F1"}
+    If ($F3Check -ne $Null){
+        $Stats          =   Get-EXOMailboxStatistics $Mailbox.UserPrincipalName
+        $TotalSize      =   $Stats.TotalItemSize
+        #Commas in the size value causes issues wtih CSV files, replacing with semis
+        $CleanSize      =   $TotalSize -replace ',',';'
+        $DisplayName    =   $Stats.DisplayName
+        $SKU            =   $F3Check.SkuPartNumber
+        $UPN            =   $Mailbox.UserPrincipalName
+        $Disabled       =   $Mailbox.AccountDisabled
 
-    $Stats  =   Get-EXOMailboxStatistics $User.UserPrincipalName
-    $TotalSize = $Stats.TotalItemSize
-    $CleanSize = $TotalSize -replace ',',';'
-    $DisplayName = $Stats.DisplayName
-    $SKU        =   $User.Licenses.AccountSkuId
-    $UPN        =   $User.UserPrincipalName
-
-    Add-Content $csvfilename "$DisplayName,$UPN,$CleanSize,$SKU"
+    Add-Content $csvfilename "$DisplayName,$UPN,$Disabled,$SKU,$CleanSize"
+    }
 }
