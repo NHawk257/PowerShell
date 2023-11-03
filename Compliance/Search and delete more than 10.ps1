@@ -3,7 +3,7 @@ $SearchName = "Monthly E04 Branch Meeting"
 # Some information to identify the messages we want to purge
 $Sender = "MCampol@oib.ca"
 $Subject = "Osoyoos Indian Band, June 2022 RFQ!!!"
-$Location = "All"
+$Location = "no-reply-canada@finning.com"
 # Date range for the search - make this as precise as possible
 #$StartDate = "10-Mar-2020"
 #$EndDate = "13-Mar-2020"
@@ -11,12 +11,13 @@ $Location = "All"
 #$End = (Get-Date $EndDate).ToString('yyyy-MM-dd')
 #$ContentQuery = '(c:c)(received=' + $Start + '..' + $End +')(senderauthor=' + $Sender + ')(subjecttitle="' + $Subject + '")'
 
-$ContentQuery = '(from=' + $Sender + ')(subject="' + $Subject + '")'
+#$ContentQuery = '(from=' + $Sender + ')(subject="' + $Subject + '")'
+$ContentQuery = '(folderid:8BB8E12C9F0BDA4E8F049FD808B93E3000000000010F0000)'
 
 If (Get-ComplianceSearch -Identity $SearchName) {
    Write-Host "Cleaning up old search"
    Try {
-      $Status = Remove-ComplianceSearch -Identity $SearchName -Confirm:$False  } 
+      $Status = Remove-ComplianceSearch -Identity $SearchName -Confirm:$False -ErrorAction Stop,SilentlyContinue } 
    Catch {
        Write-Host "We can't clean up the old search" ; break }}
 
@@ -50,7 +51,7 @@ If ($ItemsFound -gt 0) {
    While ($ItemsProcessed -lt $ItemsFound) {
        $Iterations++
        Write-Host "Deleting items... (" $Iterations ")"
-       New-ComplianceSearchAction -SearchName $SearchName -Purge -PurgeType SoftDelete -Confirm:$False | Out-Null
+       New-ComplianceSearchAction -SearchName $SearchName -Purge -PurgeType HardDelete -Confirm:$False | Out-Null
        While ((Get-ComplianceSearchAction -Identity ($SearchName + '_Purge')).Status -ne "Completed") 
        { # Let the search action complete
            Sleep -Seconds 2 }
