@@ -6,7 +6,7 @@ New-Item $csvfilename -type file -force
 Add-Content $csvfilename "Display Name,Alias,Primary SMTP,RecipientTypeDetails,Number of Users"
 
 #Get user type mailboxes. Adjust filtering as required
-$Users = Get-Mailbox -ResultSize 1000 -RecipientTypeDetails UserMailbox
+$Users = Get-Mailbox -ResultSize Unlimited -RecipientTypeDetails UserMailbox
 
 #Check each user type mailbox for sharing permissions. If they have permissions, add them to the CSV Report
 Foreach ($User in $Users){
@@ -14,7 +14,7 @@ Foreach ($User in $Users){
     $Perms = $Null
         #Counting number of unique identity entries
         $Perms = Get-MailboxPermission -Identity $User.PrimarySMTPaddress | Where-Object {$_.User -notlike "*NT Auth*"} | Measure-Object -Property Identity
-        If ($Perms.count -gt 0){
+        If ($Perms.count -gt 1){
             $DisplayName    =   $User.DisplayName
             $Alias          =   $User.Alias
             $PrimarySMTP    =   $User.PrimarySMTPAddress
