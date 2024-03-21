@@ -65,6 +65,7 @@ Connect_MgGraph
 #       ~   Actual Script   ~       #
 #####################################
 
+#Setup Variables and file paths
 $ExportCSV = ".\RoomMailboxUsageReport_$((Get-Date -format yyyy-MMM-dd-ddd` hh-mm-ss` tt).ToString()).csv"
 $ExportSummaryCSV=".\RoomMailboxUsageSummaryReport_$((Get-Date -format yyyy-MMM-dd-ddd` hh-mm-ss` tt).ToString()).csv"
 $ExportResult=""   
@@ -74,24 +75,42 @@ $EndDate=(Get-date).AddDays(1).Date
 $MbCount=0
 $PrintedMeetings=0
 
-#Retrieving all room mailboxes
-$Rooms = Get-MgBetaPlaceAsRoom -All 
+#Calculate Number of Workdays for Maths
+$difference = (New-TimeSpan -Start $startdate -End $enddate).Days
+$days = [Math]::Ceiling($difference)
+$workdays = 0..$days | ForEach-Object {
+    $startdate
+    $startdate = $startdate.AddDays(1)
+    } |  Where-Object { $_.DayOfWeek -gt 0 -and $_.DayOfWeek -lt 6 } | Measure-Object | Select-Object -ExpandProperty Count
+    
+
+$startDate=(Get-date).AddDays(-30).Date
+$EndDate=(Get-date).AddDays(1).Date
+#Retrieving all room mailboxes, we are doing this slightly differently using EXO based on RoomLists 
+
+#Using Graph to get all rooms: $Rooms = Get-MgBetaPlaceAsRoom -All 
 #You NEED minimum REVIEWER access to each Room Calendar to run this report
 #See bottom of the script for a quick way to add that for your account
 
-#$rooms = Get-Place -Type Space 
+#Using EXO to get all resources based on RL memberships
+$rooms = get-distributionGroupMember edmhorooms | Get-place
 
 foreach ($Room in $Rooms){
- $RoomAddress=$Room.EmailAddress
+ #$RoomAddress=$Room.EmailAddress -- This is for Graph as it doesn't use the same value as EXO here
+ $RoomAddress=$Room.Identity
  $RoomName=$Room.DisplayName
+ $Capacity = $Room.Capacity
  $MeetingCount=0
  $MbCount++
  $RoomUsage=0
  $OnlineMeetingCount=0
  $AllDayMeetingCount=0
+ $AvailableHours=0
+ $RoomUsageHrs=0
+ $RoomUsagePerc=0
 
 
- Get-MgBetaUserCalendarView  -UserId $RoomAddress -StartDateTime $startDate -EndDateTime $EndDate -All | foreach {
+ Get-MgBetaUserCalendarView  -UserId $RoomAddress -StartDateTime $startDate -EndDateTime $EndDate -All | ForEach-Object {
   Write-Progress -Activity "`n     Processing room: $MbCount - $RoomAddress : Meeting Count - $MeetingCount"
   if($_.IsCancelled -eq $false)
   {
@@ -110,8 +129,6 @@ foreach ($Room in $Rooms){
     $AllDayMeetingCount++
    }
    $MeetingStartTimeZone=$_.OriginalStartTimeZone
-   $MeetingCreatedTime=$_.CreatedDateTime
-   $MeetingLastModifiedTime=$_.LastModifiedDateTime
    [Datetime]$MeetingStart=$_.Start.DateTime
    $MeetingStartTime=$MeetingStart.ToLocalTime()
    [Datetime]$MeetingEnd=$_.End.DateTime
@@ -125,9 +142,9 @@ foreach ($Room in $Rooms){
     $MeetingDuration=($MeetingEndTime-$MeetingStartTime).TotalMinutes
    }
    $RoomUsage =$RoomUsage+$MeetingDuration
-   $ReqiredAttendees=(($_.Attendees | Where {$_.Type -eq "required"}).emailaddress | select -ExpandProperty Address) -join ","
-   $OptionalAttendees=(($_.Attendees | Where {$_.Type -eq "optional"}).emailaddress | select -ExpandProperty Address) -join ","
-   $AllAttendeesCount=(($_.Attendees | Where {$_.Type -ne "resource"}).emailaddress | Measure-Object).Count
+   $ReqiredAttendees=(($_.Attendees | Where-Object {$_.Type -eq "required"}).emailaddress | Select-Object -ExpandProperty Address) -join ","
+   $OptionalAttendees=(($_.Attendees | Where-Object {$_.Type -eq "optional"}).emailaddress | Select-Object -ExpandProperty Address) -join ","
+   $AllAttendeesCount=(($_.Attendees | Where-Object {$_.Type -ne "resource"}).emailaddress | Measure-Object).Count
 
    #Filter for retrieving online meetings
    if(($OnlineMeetingOnly.IsPresent) -and ($IsOnlineMeeting -eq $false))
@@ -145,6 +162,11 @@ foreach ($Room in $Rooms){
     $Print=0
    }
 
+   #Math out available hours for the resource and usage percentage
+   $AvailableHours = $workdays * 8 * $Capacity
+   $RoomUsageHrs = $RoomUsage/60
+   $RoomUsagePerc = $RoomUsageHrs/$AvailableHours
+
    #Detailed Report
    if($Print -eq 1)
    {
@@ -155,7 +177,7 @@ foreach ($Room in $Rooms){
   }
  }  
  #Summary Report
-    $ExportSummary=[PSCustomObject]@{'Room Name'=$RoomName;'Total Meeting Count'=$MeetingCount;'Online Meeting Count'=$OnlineMeetingCount;'Usage Duration(in mins)'=$RoomUsage;'Full Day Meetings'=$AllDayMeetingCount}
+    $ExportSummary=[PSCustomObject]@{'Room Name'=$RoomName;'Total Meeting Count'=$MeetingCount;'Online Meeting Count'=$OnlineMeetingCount;'Full Day Meetings'=$AllDayMeetingCount;'Usage Duration(in mins)'=$RoomUsage;'Usage Duration(in hrs)'=$RoomUsageHrs;'Usage %'=$RoomUsagePerc;'Capacity'=$Capacity}
     $ExportSummary | Export-Csv -Path $ExportSummaryCSV -Notype -Append
 }
 
@@ -178,7 +200,7 @@ Connect-ExchangeOnline
 $AdminAccount = "admin@domain.net"
 
 Foreach ($room in $rooms){
-    $RoomAddress=$Room.EmailAddress
-    Get-MailboxFolderPermission "${roomaddress}:\calendar" -User $AdminAccount #-AccessRights REVIEWER -ErrorAction SilentlyContinue
+    $RoomAddress=$Room.identity
+    Add-MailboxFolderPermission "${roomaddress}:\calendar" -User $AdminAccount -AccessRights REVIEWER -ErrorAction SilentlyContinue
 }
 #>
