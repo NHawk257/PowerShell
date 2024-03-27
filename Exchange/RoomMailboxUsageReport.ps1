@@ -60,6 +60,7 @@ Function Connect_MgGraph
  Write-Host "Microsoft Graph Beta PowerShell module is connected successfully" -ForegroundColor Green
  Write-Host "`nNote: If you encounter module related conflicts, run the script in a fresh Powershell window." -ForegroundColor Yellow
 }
+
 Connect_MgGraph
 #####################################
 #       ~   Actual Script   ~       #
@@ -71,7 +72,7 @@ $ExportSummaryCSV=".\RoomMailboxUsageSummaryReport_$((Get-Date -format yyyy-MMM-
 $ExportResult=""   
 $ExportSummary=""
 $startDate=(Get-date).AddDays(-30).Date
-$EndDate=(Get-date).AddDays(1).Date
+$EndDate=(Get-date).AddDays(0).Date
 $MbCount=0
 $PrintedMeetings=0
 
@@ -85,7 +86,8 @@ $workdays = 0..$days | ForEach-Object {
     
 
 $startDate=(Get-date).AddDays(-30).Date
-$EndDate=(Get-date).AddDays(1).Date
+$EndDate=(Get-date).AddDays(0).Date
+
 #Retrieving all room mailboxes, we are doing this slightly differently using EXO based on RoomLists 
 
 #Using Graph to get all rooms: $Rooms = Get-MgBetaPlaceAsRoom -All 
@@ -168,12 +170,12 @@ foreach ($Room in $Rooms){
    $RoomUsagePerc = $RoomUsageHrs/$AvailableHours
 
    #Detailed Report
-   if($Print -eq 1)
-   {
+   #if($Print -eq 1)
+   #{
     $PrintedMeetings++
     $ExportResult=[PSCustomObject]@{'Room Name'=$RoomName;'Organizer'=$Organizer;'Subject'=$MeetingSubject;'Start Time'=$MeetingStartTime;'End Time'=$MeetingEndTime;'Duration(in mins)'=$MeetingDuration;'TimeZone'=$MeetingStartTimeZone;'Total Attendees Count'=$AllAttendeesCount;'Required Attendees'=$ReqiredAttendees;'Optional Attendees'=$OptionalAttendees;'Is Online Meeting'=$IsOnlineMeeting;'Is AllDay Meeting'=$IsAllDayMeeting}
     $ExportResult | Export-Csv -Path $ExportCSV -Notype -Append
-   }
+   #}
   }
  }  
  #Summary Report
