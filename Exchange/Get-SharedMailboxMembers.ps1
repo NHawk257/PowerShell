@@ -2,15 +2,30 @@
 
 $csvfilename = ".\SM_Members.csv"
 New-Item $csvfilename -type file -force
-Add-Content $csvfilename "Name,Members"
+Add-Content $csvfilename "Name,Type,LastAccessed,Members"
 
-$Mailboxes = Import-Csv '.\Unlicsensed Shared Mailboxes.csv' #| Where-Object {$_.type -eq "Shared Mailbox"}
+$Mailboxes = Import-Csv '.\SCTASK0583459.csv' #| Where-Object {$_.type -eq "Shared Mailbox"}
 
 foreach ($Mailbox in $Mailboxes){
 
-    $Members = Get-MailboxPermission $Mailbox.PrimarySMTPAddress | Where-Object {$_.AccessRights -eq "FullAccess"} | Select-Object -ExpandProperty user
-    $Name = $Mailbox.DisplayName
+    $Type = Get-Recipient $Mailbox.SMTP | Select -ExpandProperty RecipientType
+    If ($Type -eq "UserMailbox"){
 
-    Add-Content $csvfilename "$Name,$members"
+        $Members = Get-MailboxPermission $Mailbox.SMTP | Where-Object {$_.AccessRights -eq "FullAccess"} | Select-Object -ExpandProperty user
+        $LastUserAction = Get-MailboxStatistics $Mailbox.SMTP | Select-Object -ExpandProperty LastInteractionTime
+
+    }
+    elseif ($Type -Like "*MailUniversal*") {
+        $Members = Get-DistributionGroupMember $Mailbox.SMTP | Select-Object -ExpandProperty DisplayName
+        $LastUserAction = $null
+    }
+
+    else {
+        Write-Host $Mailbox.SMTP "Does not exist"
+        }
+
+    $Name = $Mailbox.SMTP
+
+    Add-Content $csvfilename "$Name,$Type,$LastUserAction,$members"
 
 }
