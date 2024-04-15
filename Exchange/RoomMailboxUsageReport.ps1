@@ -165,7 +165,13 @@ foreach ($Room in $Rooms){
    }
 
    #Math out available hours for the resource and usage percentage
-   $AvailableHours = $workdays * 8 * $Capacity
+   If ($Room.Type -eq "Room"){
+    $AvailableHours = 8
+   }
+   Else{
+    $AvailableHours = 8 * $Capacity
+   }
+   
    $RoomUsageHrs = $RoomUsage/60
    $RoomUsagePerc = $RoomUsageHrs/$AvailableHours
 
