@@ -62,14 +62,13 @@ Function Connect_MgGraph
 }
 
 Connect_MgGraph
+Connect-ExchangeOnline
 #####################################
 #       ~   Actual Script   ~       #
 #####################################
 
 #Setup Variables and file paths
-$ExportCSV = ".\RoomMailboxUsageReport_$((Get-Date -format yyyy-MMM-dd-ddd` hh-mm-ss` tt).ToString()).csv"
-$ExportSummaryCSV=".\RoomMailboxUsageSummaryReport_$((Get-Date -format yyyy-MMM-dd-ddd` hh-mm-ss` tt).ToString()).csv"
-$ExportResult=""   
+$ExportSummaryCSV=".\RoomMailboxUsageSummaryReport_$((Get-Date -format yyyy-MMM-dd-ddd` hh-mm-ss` tt).ToString()).csv"  
 $ExportSummary=""
 $startDate=(Get-date).AddDays(-30).Date
 $EndDate=(Get-date).AddDays(0).Date
@@ -96,17 +95,14 @@ $EndDate=(Get-date).AddDays(0).Date
         $startDate = $startDate.AddDays(+1)
     }
 
-#Retrieving all room mailboxes, we are doing this slightly differently using EXO based on RoomLists 
 
-#Using Graph to get all rooms: $Rooms = Get-MgBetaPlaceAsRoom -All 
 #You NEED minimum REVIEWER access to each Room Calendar to run this report
 #See bottom of the script for a quick way to add that for your account
-
 #Using EXO to get all resources based on RL memberships
 $rooms = get-distributionGroupMember edmhorooms | Get-place
 
+Foreach ($date in $Dates){
 foreach ($Room in $Rooms){
- #$RoomAddress=$Room.EmailAddress -- This is for Graph as it doesn't use the same value as EXO here
  $RoomAddress=$Room.Identity
  $RoomName=$Room.DisplayName
  $Capacity = $Room.Capacity
@@ -120,7 +116,7 @@ foreach ($Room in $Rooms){
  $RoomUsagePerc=0
 
 
- Get-MgBetaUserCalendarView  -UserId $RoomAddress -StartDateTime $startDate -EndDateTime $EndDate -All | ForEach-Object {
+ Get-MgBetaUserCalendarView  -UserId $RoomAddress -StartDateTime $Date -EndDateTime $Date -All | ForEach-Object {
   Write-Progress -Activity "`n     Processing room: $MbCount - $RoomAddress : Meeting Count - $MeetingCount"
   if($_.IsCancelled -eq $false)
   {
@@ -152,51 +148,43 @@ foreach ($Room in $Rooms){
     $MeetingDuration=($MeetingEndTime-$MeetingStartTime).TotalMinutes
    }
    $RoomUsage =$RoomUsage+$MeetingDuration
-   $ReqiredAttendees=(($_.Attendees | Where-Object {$_.Type -eq "required"}).emailaddress | Select-Object -ExpandProperty Address) -join ","
-   $OptionalAttendees=(($_.Attendees | Where-Object {$_.Type -eq "optional"}).emailaddress | Select-Object -ExpandProperty Address) -join ","
-   $AllAttendeesCount=(($_.Attendees | Where-Object {$_.Type -ne "resource"}).emailaddress | Measure-Object).Count
-
-   #Filter for retrieving online meetings
-   if(($OnlineMeetingOnly.IsPresent) -and ($IsOnlineMeeting -eq $false))
-   {
-    $Print=0
-   }
-   #View meetings from a specific organizer
-   if(($OrgEmailId -ne "") -and ($OrgEmailId -ne $Organizer))
-   {
-    $Print=0
-   }
-   #Show Todays meetings only
-   if(($ShowTodaysMeetingsOnly.IsPresent) -and ($MeetingStartTime -lt (Get-Date).Date))
-   {
-    $Print=0
-   }
 
    #Math out available hours for the resource and usage percentage
-   $AvailableHours = $workdays * 8 * $Capacity
+   If ($Room.Type -eq "Room"){
+    $AvailableHours = 8
+   }
+   Else{
+    $AvailableHours = 8 * $Capacity
+   }
    $RoomUsageHrs = $RoomUsage/60
    $RoomUsagePerc = $RoomUsageHrs/$AvailableHours
+   If ($RoomUsagePerc -gt 1){
+    $RoomUsagePerc = 1
+   }
 
    #Detailed Report
    #if($Print -eq 1)
    #{
-    $PrintedMeetings++
-    $ExportResult=[PSCustomObject]@{'Room Name'=$RoomName;'Organizer'=$Organizer;'Subject'=$MeetingSubject;'Start Time'=$MeetingStartTime;'End Time'=$MeetingEndTime;'Duration(in mins)'=$MeetingDuration;'TimeZone'=$MeetingStartTimeZone;'Total Attendees Count'=$AllAttendeesCount;'Required Attendees'=$ReqiredAttendees;'Optional Attendees'=$OptionalAttendees;'Is Online Meeting'=$IsOnlineMeeting;'Is AllDay Meeting'=$IsAllDayMeeting}
-    $ExportResult | Export-Csv -Path $ExportCSV -Notype -Append
+   # $PrintedMeetings++
+   # $ExportResult=[PSCustomObject]@{'Room Name'=$RoomName;'Organizer'=$Organizer;'Subject'=$MeetingSubject;'Start Time'=$MeetingStartTime;'End Time'=$MeetingEndTime;'Duration(in mins)'=$MeetingDuration;'TimeZone'=$MeetingStartTimeZone;'Total Attendees Count'=$AllAttendeesCount;'Required Attendees'=$ReqiredAttendees;'Optional Attendees'=$OptionalAttendees;'Is Online Meeting'=$IsOnlineMeeting;'Is AllDay Meeting'=$IsAllDayMeeting}
+   # $ExportResult | Export-Csv -Path $ExportCSV -Notype -Append
    #}
   }
  }  
  #Summary Report
-    $ExportSummary=[PSCustomObject]@{'Room Name'=$RoomName;'Total Meeting Count'=$MeetingCount;'Online Meeting Count'=$OnlineMeetingCount;'Full Day Meetings'=$AllDayMeetingCount;'Usage Duration(in mins)'=$RoomUsage;'Usage Duration(in hrs)'=$RoomUsageHrs;'Usage %'=$RoomUsagePerc;'Capacity'=$Capacity}
+    $PrintedMeetings++
+    $ExportSummary=[PSCustomObject]@{'date'=$date;'Room Name'=$RoomName;'Total Meeting Count'=$MeetingCount;'Online Meeting Count'=$OnlineMeetingCount;'Full Day Meetings'=$AllDayMeetingCount;'Usage Duration(in mins)'=$RoomUsage;'Usage Duration(in hrs)'=$RoomUsageHrs;'Usage %'=$RoomUsagePerc;'Capacity'=$Capacity}
     $ExportSummary | Export-Csv -Path $ExportSummaryCSV -Notype -Append
 }
+}
 
-#Open output file after execution
+####################################
+# Open output file after execution #
+####################################
 Write-Host `nScript executed successfully
-if((Test-Path -Path $ExportCSV) -eq "True")
+if((Test-Path -Path $ExportSummaryCSV) -eq "True")
 {
     Write-Host "`nExported report has" -NoNewLine ; Write-Host " $PrintedMeetings meeting(s)" -ForegroundColor Magenta
-    Write-Host `nDetailed report available in: -NoNewline -Foregroundcolor Yellow; Write-Host " $ExportCSV" 
     Write-Host `nSummary report available in: -NoNewline -ForegroundColor Yellow; Write-Host " $ExportSummaryCSV `n" 
 }
 else
