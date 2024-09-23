@@ -2,7 +2,7 @@
 #Connect-ExchangeOnline
 
 #(Re)set Variables
-$Group = 'ProductSupportSales@finning.ca'
+$Group = 'tech_services_mail_out@finning.com'
 $members = New-Object System.Collections.ArrayList
 $csvfilename = ".\$Group Nested Members.csv"
 New-Item $csvfilename -type file -force
@@ -14,6 +14,10 @@ Function GetMembers($group){
     Foreach ($member in $Details){
 
         If ($Member.RecipientTypeDetails -like "*DistributionGroup*"){
+            $SMTPAddress = $Member.PrimarySmtpAddress
+            $DisplayName = $Member.DisplayName
+            $Title       = "DistributionGroup"
+            Add-Content $csvfilename "$DisplayName,$SMTPAddress,$Title"
             GetMembers($member.PrimarySMTPaddress)
 
         }
