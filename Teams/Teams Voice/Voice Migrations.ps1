@@ -2,8 +2,8 @@
 
 Connect-MicrosoftTeams
 
-$Users = Import-Csv <filename here>
-$ResourceAccounts = Import-Csv <Filename Here>
+$Users = Import-Csv .\FileName.csv
+$ResourceAccounts = Import-Csv .\FileName.csv
 
 #User Accounts
 Foreach ($U in $Users){
