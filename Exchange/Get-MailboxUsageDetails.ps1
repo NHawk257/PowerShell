@@ -7,7 +7,7 @@ New-Item $csvfilename -type file -force
 Add-Content $csvfilename "DisplayName,UPN,Disabled,TotalSize,Quota,Location,Type,Policy"
 
 #Get all mailboxes in tenant
-$Mailboxes = Get-Mailbox -ResultSize Unlimited -reci
+$Mailboxes = Get-Mailbox -ResultSize Unlimited -RecipientTypeDetails UserMailbox
 
 Foreach ($Mailbox in $Mailboxes){
     
